@@ -5,10 +5,9 @@ from pytz import timezone
 
 def load_attempts():
     pages = 10
-    for page in range(pages):
-        response = requests.get(
-            'http://devman.org/api/challenges/solution_attempts/?page='+str(page+1)
-        )
+    url = 'http://devman.org/api/challenges/solution_attempts/'
+    for page in range(1, pages+1):
+        response = requests.get(url, params={'page': page})
         decoded_json = response.json()
         for record in decoded_json['records']:
             yield record
