@@ -9,22 +9,22 @@ def load_attempts():
     page = 1
     while True:
         response = requests.get(url, params={'page': page})
-        if response.status_code == 404:
-            break
         decoded_json = response.json()
         page += 1
-        for attempt in decoded_json['records']:
-            yield attempt
+        if decoded_json['number_of_pages'] == page:
+            break
+        yield from decoded_json['records']
 
 
-def get_midnighters(attempt):
+def get_midnighters(attempts):
     midnighters = defaultdict(list)
-    tz = timezone(attempt['timezone'])
-    post_time = datetime.fromtimestamp(attempt['timestamp'], tz=tz)
-    if post_time.hour in range(7):
-        username = attempt['username']
-        post_time = post_time.strftime('%d/%m/%y %H:%M')
-        midnighters[username].append(post_time)
+    for attempt in attempts:
+        tz = timezone(attempt['timezone'])
+        post_time = datetime.fromtimestamp(attempt['timestamp'], tz=tz)
+        if post_time.hour in range(7):
+            username = attempt['username']
+            post_time = post_time.strftime('%d/%m/%y %H:%M')
+            midnighters[username].append(post_time)
     return midnighters
 
 
@@ -36,6 +36,5 @@ def pprint(midnighters):
 
 
 if __name__ == '__main__':
-    for attemp in load_attempts():
-        midnighters = get_midnighters(attemp)
-        pprint(midnighters)
+    midnighters = get_midnighters(load_attempts())
+    pprint(midnighters)
